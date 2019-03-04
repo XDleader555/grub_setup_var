@@ -17,7 +17,7 @@ _build_platforms="i386-pc ${_target_arch}-efi"
 [[ "${_grub_emu_build}" == "1" ]] && _build_platforms+=" ${_target_arch}-emu"
 
 pkgname="grub-git"
-pkgver=2.02.r241.ged087f046
+pkgver=2.02.r265.g686db9664
 pkgrel=1
 pkgdesc="GNU GRand Unified Bootloader (2)"
 arch=('x86_64' 'i686')
@@ -45,10 +45,12 @@ backup=('etc/default/grub'
 install="${pkgname}.install"
 source=("grub::git://git.savannah.gnu.org/grub.git"
         "grub-extras::git://git.savannah.gnu.org/grub-extras.git"
+        'setup_var.patch'
         '10_linux-detect-archlinux-initramfs.patch'
         'add-GRUB_COLOR_variables.patch'
         'grub.default')
 sha256sums=('SKIP'
+            'SKIP'
             'SKIP'
             'b41e4438319136b5e74e0abdfcb64ae115393e4e15207490272c425f54026dd3'
             'a5198267ceb04dceb6d2ea7800281a42b3f91fd02da55d2cc9ea20d47273ca29'
@@ -63,6 +65,9 @@ prepare() {
     # Patch to enable GRUB_COLOR_* variables in grub-mkconfig.
     # Based on http://lists.gnu.org/archive/html/grub-devel/2012-02/msg00021.html
     patch -Np1 -i "$srcdir"/add-GRUB_COLOR_variables.patch
+
+    # Patch to add setup_var
+    patch -Np1 -i "$srcdir"/setup_var.patch
 
     # Fix DejaVuSans.ttf location so that grub-mkfont can create *.pf2 files for starfield theme.
     sed 's|/usr/share/fonts/dejavu|/usr/share/fonts/dejavu /usr/share/fonts/TTF|g' -i "configure.ac"
@@ -118,7 +123,7 @@ build() {
                 --disable-silent-rules \
                 --disable-werror \
                 ac_cv_header_sys_sysmacros_h=yes
-        make
+        make -j$(nproc)
     done
 }
 
